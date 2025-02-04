@@ -130,10 +130,8 @@ const parseCreateLaunchpadTransaction = async (hash) => {
   }
 
   const decodedCreateLog = web3.eth.abi.decodeLog(CREATE_EVENT.inputs, createLog.data, createLog.topics);
-  console.log({ createLog, decodedCreateLog });
   const { token, timestamps, name, title, description } = decodedCreateLog.pool;
   const creator = transaction.from.toLowerCase();
-  console.log({ token, timestamps, name, title, description });
   const starts = new Date(Number(timestamps[0]) * 1000);
   const ends = new Date(Number(timestamps[2]) * 1000);
   const id = await _tokenToPresaleId(token);
@@ -170,7 +168,6 @@ const processCreateLaunchpad = async ({ links, hash }) => {
     });
 
     await newLaunchpad.save();
-    console.log({ message: 'Launchpad updated successfully', newLaunchpad });
     return newLaunchpad;
   } catch (error) {
     return error.message;
@@ -193,7 +190,6 @@ const processUpdateLaunchpad = async ({ token: _token, links, encryptedCreator }
     throw new Error('Creator is required');
   }
   const creator = _creator.toLowerCase();
-  console.log({ creator });
 
   const launchpad = await LaunchpadModel.findOne({ token, creator });
   if (!launchpad) {
@@ -310,7 +306,6 @@ const paginatePastPools = async ({ page, limit }) => {
 };
 
 const searchLaunchpad = async (search, page, limit) => {
-  console.log({ page, limit, search });
   if (!search) {
     throw new Error('Search is required');
   }
@@ -367,11 +362,9 @@ const _getPresaleFromBlockchain = async (id) => {
   return { token, id, creator, starts, ends, name, title, description };
 };
 const replaceMissingLaunchpads = async () => {
-  console.log('Replacing missing launchpads');
   const _launchpadCount = await launchpadContract.methods.getTotalPresalePools().call();
 
   const launchpadCount = parseInt(_launchpadCount);
-  console.log({ launchpadCount });
   //0 to launchpadCount all should be in mongodb. otherwise, we need to fetch them via contract
   const launchpads = await LaunchpadModel.find().select('id').lean();
   const launchpadIds = launchpads.map((launchpad) => launchpad.id);

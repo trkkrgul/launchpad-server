@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  express:
+    build: .
+    ports:
+      - '4005:3000'
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      MONGODB_URL: mongodb://mongodb:27017/sakai_launchpad
+      REDIS_URL: redis://redis:6379
+      CHAIN_ID: ${CHAIN_ID}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    ports:
+      - '27019:27017'
+    command: mongod --bind_ip_all --replSet sakai_launchpad --setParameter "transactionLifetimeLimitSeconds=1800"
+    restart: always
+    volumes:
+      - mongodb_sakai_launchpad:/data/db
+
+  mongoinit:
+    image: mongo
+    depends_on:
+      - mongodb
+    restart: 'no'
+    healthcheck:
+      test: mongosh --host mongodb:27017 --eval 'exit'
+      interval: 2s
+    command: >
+      bash -c '
+        mongosh --host mongodb:27017 --eval "
+          rs.initiate({
+            _id: \"sakai_launchpad\",
+            members: [{ _id: 0, host: \"mongodb:27017\" }]
+          })
+        "
+      '
+
+volumes:
+  mongodb_sakai_launchpad:

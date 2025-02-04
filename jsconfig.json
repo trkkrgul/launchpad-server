@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "#constants": ["./src/constants/index.js"],
+      "#models": ["./src/models/index.js"],
+      "#routes": ["./src/routes/index.js"],
+      "#services": ["./src/services/index.js"],
+      "#utils": ["./src/utils/index.js"],
+      "#validators": ["./src/validators/index.js"]
+    },
+    "target": "ESNext",
+    "module": "commonjs"
+  },
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,600 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_admin", "type": "address" },
+      { "internalType": "address", "name": "_usdt", "type": "address" },
+      { "internalType": "address", "name": "_sakai", "type": "address" },
+      { "internalType": "address", "name": "_sakaiDAO", "type": "address" },
+      { "internalType": "address", "name": "_airdropWallet", "type": "address" },
+      { "internalType": "address", "name": "_router", "type": "address" },
+      { "internalType": "address", "name": "_paxeTreasury", "type": "address" },
+      { "internalType": "uint256", "name": "_presaleCreationFee", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  { "inputs": [], "name": "AlreadyClaimed", "type": "error" },
+  { "inputs": [], "name": "AlreadyFinalized", "type": "error" },
+  { "inputs": [], "name": "IncorrectAllocationMultiplerValue", "type": "error" },
+  { "inputs": [], "name": "IncorrectAllocationRoundDuration", "type": "error" },
+  { "inputs": [], "name": "IncorrectLength", "type": "error" },
+  { "inputs": [], "name": "IncorrectLiquidityPercentage", "type": "error" },
+  { "inputs": [], "name": "IncorrectPriceValue", "type": "error" },
+  { "inputs": [], "name": "IncorrectRates", "type": "error" },
+  { "inputs": [], "name": "IncorrectSoftcapValue", "type": "error" },
+  { "inputs": [], "name": "IncorrectWhitelistOrPublicRoundDuration", "type": "error" },
+  { "inputs": [], "name": "InsufficientLiquidityTokenAmount", "type": "error" },
+  { "inputs": [], "name": "InsufficientPresaleTokenAmount", "type": "error" },
+  { "inputs": [], "name": "InsufficientTier", "type": "error" },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "value", "type": "uint256" }],
+    "name": "InvalidDecimalsValue",
+    "type": "error"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "value", "type": "uint256" }],
+    "name": "InvalidEtherValue",
+    "type": "error"
+  },
+  { "inputs": [], "name": "MaxContributionExceeded", "type": "error" },
+  { "inputs": [], "name": "NotFinalized", "type": "error" },
+  { "inputs": [], "name": "NotWhitelist", "type": "error" },
+  {
+    "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  { "inputs": [], "name": "PresaleEnded", "type": "error" },
+  { "inputs": [], "name": "PresaleNotEndedYet", "type": "error" },
+  { "inputs": [], "name": "PresaleNotStarted", "type": "error" },
+  { "inputs": [], "name": "PresaleTokenExistsAlready", "type": "error" },
+  { "inputs": [], "name": "ReentrancyGuardReentrantCall", "type": "error" },
+  {
+    "inputs": [{ "internalType": "address", "name": "token", "type": "address" }],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  { "inputs": [], "name": "TokenAmountExceedsUserLimit", "type": "error" },
+  { "inputs": [], "name": "Unauthorized", "type": "error" },
+  { "inputs": [], "name": "UserAllocationExceeded", "type": "error" },
+  { "inputs": [], "name": "WhitelistOrPublicRoundNotLiveYet", "type": "error" },
+  { "inputs": [], "name": "WithdrawFromSakaiDAO", "type": "error" },
+  { "inputs": [], "name": "ZeroAddressNotAllowed", "type": "error" },
+  { "inputs": [], "name": "ZeroAmountNotAllowed", "type": "error" },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "address", "name": "airdropWallet", "type": "address" },
+      { "indexed": false, "internalType": "address", "name": "newAirdropWallet", "type": "address" }
+    ],
+    "name": "AirdropWalletUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "indexed": false, "internalType": "address", "name": "user", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "claimed", "type": "uint256" },
+      {
+        "indexed": false,
+        "internalType": "enum ILaunchpad.FinalizationStatus",
+        "name": "finalizationStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "Claimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "address", "name": "user", "type": "address" },
+      { "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "usdtAmount", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "tokenAmount", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "round", "type": "uint256" }
+    ],
+    "name": "Contribution",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "unsoldTokens", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "creatorFee", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "usdtLiquidity", "type": "uint256" },
+      {
+        "indexed": false,
+        "internalType": "enum ILaunchpad.FinalizationStatus",
+        "name": "finalizationStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "Finalized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "IsWhitelistUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "maxContribution", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" }
+    ],
+    "name": "MaxContributionUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "token", "type": "address" },
+          { "internalType": "uint256", "name": "tokensForPresale", "type": "uint256" },
+          { "internalType": "uint256", "name": "tokensForLiquidity", "type": "uint256" },
+          { "internalType": "uint256[2]", "name": "rates", "type": "uint256[2]" },
+          { "internalType": "uint256[2]", "name": "price", "type": "uint256[2]" },
+          { "internalType": "uint256[3]", "name": "timestamps", "type": "uint256[3]" },
+          { "internalType": "uint256", "name": "softcap", "type": "uint256" },
+          { "internalType": "uint256", "name": "liquidityPercent", "type": "uint256" },
+          { "internalType": "uint256", "name": "allocationMultipler", "type": "uint256" },
+          { "internalType": "bool", "name": "isWhitelist", "type": "bool" },
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "string", "name": "title", "type": "string" },
+          { "internalType": "string", "name": "description", "type": "string" },
+          { "internalType": "string", "name": "website", "type": "string" },
+          { "internalType": "string", "name": "logo", "type": "string" },
+          { "internalType": "string", "name": "kyc", "type": "string" },
+          { "internalType": "string", "name": "video", "type": "string" },
+          { "internalType": "string", "name": "audit", "type": "string" }
+        ],
+        "indexed": false,
+        "internalType": "struct ILaunchpad.PresalePool",
+        "name": "pool",
+        "type": "tuple"
+      }
+    ],
+    "name": "PresalePoolCreated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "address[]", "name": "users", "type": "address[]" },
+      { "indexed": false, "internalType": "bool[]", "name": "isWhitelisted", "type": "bool[]" },
+      { "indexed": false, "internalType": "uint256", "name": "presaleId", "type": "uint256" }
+    ],
+    "name": "WhitelistUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "MAGNITUDE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAXIMUM_ALLOCATION_MULTIPLIER",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAXIMUM_PRICE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINIMUM_ROUND_DURATION",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINIMUM_TOKENS_FOR_LIQUIDITY",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINIMUM_TOKENS_FOR_PRESALE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRESALE_CREATION_FEE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRESALE_TOKEN_DECIMALS",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PRICE_MAGNITUDE",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "SAKAI",
+    "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "USDT",
+    "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "airdropWallet",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "claim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
+    "name": "contribute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "token", "type": "address" },
+          { "internalType": "uint256", "name": "tokensForPresale", "type": "uint256" },
+          { "internalType": "uint256", "name": "tokensForLiquidity", "type": "uint256" },
+          { "internalType": "uint256[2]", "name": "rates", "type": "uint256[2]" },
+          { "internalType": "uint256[2]", "name": "price", "type": "uint256[2]" },
+          { "internalType": "uint256[3]", "name": "timestamps", "type": "uint256[3]" },
+          { "internalType": "uint256", "name": "softcap", "type": "uint256" },
+          { "internalType": "uint256", "name": "liquidityPercent", "type": "uint256" },
+          { "internalType": "uint256", "name": "allocationMultipler", "type": "uint256" },
+          { "internalType": "bool", "name": "isWhitelist", "type": "bool" },
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "string", "name": "title", "type": "string" },
+          { "internalType": "string", "name": "description", "type": "string" },
+          { "internalType": "string", "name": "website", "type": "string" },
+          { "internalType": "string", "name": "logo", "type": "string" },
+          { "internalType": "string", "name": "kyc", "type": "string" },
+          { "internalType": "string", "name": "video", "type": "string" },
+          { "internalType": "string", "name": "audit", "type": "string" }
+        ],
+        "internalType": "struct ILaunchpad.PresalePool",
+        "name": "presaleInputs",
+        "type": "tuple"
+      }
+    ],
+    "name": "createPresalePool",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "finalize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "getPresalePool",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "token", "type": "address" },
+          { "internalType": "address", "name": "creator", "type": "address" },
+          { "internalType": "uint256", "name": "tokensForPresale", "type": "uint256" },
+          { "internalType": "uint256", "name": "tokensForLiquidity", "type": "uint256" },
+          { "internalType": "uint256[2]", "name": "rates", "type": "uint256[2]" },
+          { "internalType": "uint256[2]", "name": "price", "type": "uint256[2]" },
+          { "internalType": "uint256[3]", "name": "timestamps", "type": "uint256[3]" },
+          { "internalType": "uint256", "name": "softcap", "type": "uint256" },
+          { "internalType": "uint256", "name": "liquidityPercent", "type": "uint256" },
+          { "internalType": "uint256", "name": "allocationMultipler", "type": "uint256" },
+          { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+          { "internalType": "uint256", "name": "tokensSold", "type": "uint256" },
+          { "internalType": "uint256", "name": "usdtRaised", "type": "uint256" },
+          { "internalType": "uint256", "name": "allocationRoundSold", "type": "uint256" },
+          { "internalType": "uint256", "name": "fcfsRoundSold", "type": "uint256" },
+          { "internalType": "uint256", "name": "whitelistOrPublicSold", "type": "uint256" },
+          { "internalType": "bool", "name": "isWhitelist", "type": "bool" },
+          { "internalType": "bool", "name": "fcfsActivated", "type": "bool" },
+          { "internalType": "string", "name": "name", "type": "string" },
+          { "internalType": "string", "name": "title", "type": "string" },
+          { "internalType": "string", "name": "description", "type": "string" },
+          { "internalType": "string", "name": "website", "type": "string" },
+          { "internalType": "string", "name": "logo", "type": "string" },
+          { "internalType": "string", "name": "kyc", "type": "string" },
+          { "internalType": "string", "name": "video", "type": "string" },
+          { "internalType": "string", "name": "audit", "type": "string" },
+          { "internalType": "enum ILaunchpad.FinalizationStatus", "name": "finalizationStatus", "type": "uint8" }
+        ],
+        "internalType": "struct ILaunchpad.PresalePoolEntry",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "getStatus",
+    "outputs": [{ "internalType": "enum ILaunchpad.PresalePoolStatus", "name": "presaleStatus", "type": "uint8" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getTier",
+    "outputs": [{ "internalType": "enum ILaunchpad.Tier", "name": "", "type": "uint8" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTotalPresalePools",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "user", "type": "address" },
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" }
+    ],
+    "name": "getUserPoolInfo",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "uint256[3]", "name": "contribution", "type": "uint256[3]" },
+          { "internalType": "uint256[3]", "name": "tokensBought", "type": "uint256[3]" },
+          { "internalType": "uint256", "name": "claimed", "type": "uint256" },
+          { "internalType": "uint256", "name": "sakaiDaoBalance", "type": "uint256" }
+        ],
+        "internalType": "struct ILaunchpad.UserPoolInfo",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "isWhitelist",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "internalType": "address", "name": "user", "type": "address" }
+    ],
+    "name": "isWhitelisted",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "maxContribution",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" },
+      { "internalType": "enum ILaunchpad.Tier", "name": "tier", "type": "uint8" }
+    ],
+    "name": "maxContributionForAllocationRound",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paxeTreasury",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "presalePools",
+    "outputs": [
+      { "internalType": "address", "name": "token", "type": "address" },
+      { "internalType": "address", "name": "creator", "type": "address" },
+      { "internalType": "uint256", "name": "tokensForPresale", "type": "uint256" },
+      { "internalType": "uint256", "name": "tokensForLiquidity", "type": "uint256" },
+      { "internalType": "uint256", "name": "softcap", "type": "uint256" },
+      { "internalType": "uint256", "name": "liquidityPercent", "type": "uint256" },
+      { "internalType": "uint256", "name": "allocationMultipler", "type": "uint256" },
+      { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+      { "internalType": "uint256", "name": "tokensSold", "type": "uint256" },
+      { "internalType": "uint256", "name": "usdtRaised", "type": "uint256" },
+      { "internalType": "uint256", "name": "allocationRoundSold", "type": "uint256" },
+      { "internalType": "uint256", "name": "fcfsRoundSold", "type": "uint256" },
+      { "internalType": "uint256", "name": "whitelistOrPublicSold", "type": "uint256" },
+      { "internalType": "bool", "name": "isWhitelist", "type": "bool" },
+      { "internalType": "bool", "name": "fcfsActivated", "type": "bool" },
+      { "internalType": "string", "name": "name", "type": "string" },
+      { "internalType": "string", "name": "title", "type": "string" },
+      { "internalType": "string", "name": "description", "type": "string" },
+      { "internalType": "string", "name": "website", "type": "string" },
+      { "internalType": "string", "name": "logo", "type": "string" },
+      { "internalType": "string", "name": "kyc", "type": "string" },
+      { "internalType": "string", "name": "video", "type": "string" },
+      { "internalType": "string", "name": "audit", "type": "string" },
+      { "internalType": "enum ILaunchpad.FinalizationStatus", "name": "finalizationStatus", "type": "uint8" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "name": "presaleWhitelist",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [],
+    "name": "router",
+    "outputs": [{ "internalType": "contract IUniswapV2Router02", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sakaiDAO",
+    "outputs": [{ "internalType": "contract ISakaiDAO", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_airdropWallet", "type": "address" }],
+    "name": "setAirdropWallet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_maxContribution", "type": "uint256" },
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" }
+    ],
+    "name": "setMaxContributionForWhitelistOrPublicRound",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address[]", "name": "users", "type": "address[]" },
+      { "internalType": "bool[]", "name": "_isWhitelisted", "type": "bool[]" },
+      { "internalType": "uint256", "name": "presaleId", "type": "uint256" }
+    ],
+    "name": "setWhitelist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "presaleId", "type": "uint256" }],
+    "name": "switchToPublicSale",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "name": "tierAllocations",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "tokenToPresaleId",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "usedPresaleTokens",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "name": "userPoolInfo",
+    "outputs": [
+      { "internalType": "uint256", "name": "claimed", "type": "uint256" },
+      { "internalType": "uint256", "name": "sakaiDaoBalance", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
